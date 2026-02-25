@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2FA Authenticator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #1f2937;
+            --bg-secondary: #111827;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --accent-primary: #4285f4;
+            --accent-hover: #3367d6;
+            --success: #34a853;
+            --error: #ea4335;
+            --card-bg: #374151;
+            --card-border: #4b5563;
+            --input-bg: #4b5563;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+        body {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem 3rem;
+        }
+
+        .app-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .app-header .logo {
+            width: 64px;
+            height: 64px;
+            background: var(--accent-primary);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            color: white;
+            margin: 0 auto 1rem;
+        }
+
+        .app-header h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .app-header p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 440px;
+            margin-bottom: 1.25rem;
+        }
+
+        .input-section label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 0.625rem;
+        }
+
+        .input-section input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-family: 'Roboto Mono', monospace;
+            letter-spacing: 0.05em;
+            transition: border-color 0.2s;
+            margin-bottom: 0.75rem;
+        }
+
+        .input-section input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .input-section input::placeholder {
+            color: var(--text-secondary);
+            font-family: inherit;
+            letter-spacing: normal;
+        }
+
+        .btn-generate {
+            width: 100%;
+            padding: 0.875rem;
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-generate:hover { background: var(--accent-hover); }
+        .btn-generate:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .error-msg {
+            margin-top: 0.625rem;
+            font-size: 0.8rem;
+            color: var(--error);
+            display: none;
+        }
+
+        .error-msg.show { display: block; }
+
+        .result-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 440px;
+            margin-bottom: 1.25rem;
+            display: none;
+        }
+
+        .result-card.show { display: block; }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .result-header span {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .timer-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-secondary);
+            padding: 0.375rem 0.75rem;
+            border-radius: 2rem;
+            border: 1px solid var(--card-border);
+        }
+
+        .timer-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 1s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+
+        .timer-dot.urgent { background: var(--error); animation: none; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .timer-text {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .timer-text span {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .token-code {
+            font-size: 3rem;
+            font-weight: 400;
+            letter-spacing: 0.25em;
+            color: var(--accent-primary);
+            font-family: 'Roboto Mono', 'Courier New', monospace;
+            line-height: 1;
+            text-align: center;
+            margin-bottom: 1.25rem;
+            transition: color 0.2s;
+        }
+
+        .token-code.urgent { color: var(--error); }
+
+        .btn-copy {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn-copy:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        .btn-copy.copied { border-color: var(--success); color: var(--success); background: rgba(52, 168, 83, 0.1); }
+
+        .progress-bar-wrap {
+            margin-top: 1.25rem;
+            height: 4px;
+            background: var(--card-border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--accent-primary);
+            border-radius: 2px;
+            transition: width 1s linear, background 0.3s;
+        }
+
+        .progress-bar.urgent { background: var(--error); }
+
+        .history-section {
+            margin-top: 1.25rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--card-border);
+        }
+
+        .history-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 0.75rem;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.625rem 0.875rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--card-border);
+            gap: 0.5rem;
+        }
+
+        .history-item-left {
+            display: flex;
+            flex-direction: column;
+            gap: 0.125rem;
+            min-width: 0;
+        }
+
+        .history-secret {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-family: monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-token {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Roboto Mono', monospace;
+            letter-spacing: 0.15em;
+        }
+
+        .history-copy-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .history-copy-btn:hover { color: var(--accent-primary); background: rgba(66, 133, 244, 0.1); }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(1.5rem);
+            background: #323232;
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+            white-space: nowrap;
+            z-index: 999;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        footer {
+            margin-top: auto;
+            padding-top: 1.5rem;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        footer a { color: var(--accent-primary); text-decoration: none; }
+        footer a:hover { color: var(--accent-hover); }
+    </style>
+</head>
+<body>
+
+<div class="app-header">
+    <div class="logo"><i class="fas fa-shield-halved"></i></div>
+    <h1>2FA Authenticator</h1>
+    <p>Generate time-based one-time passwords</p>
+</div>
+
+<div class="card input-section">
+    <label>Secret Key</label>
+    <input type="text" id="secretInput" placeholder="Enter your secret key" autocomplete="off" spellcheck="false">
+    <button class="btn-generate" id="generateBtn">
+        <i class="fas fa-key"></i>
+        Generate Code
+    </button>
+    <div class="error-msg" id="errorMsg"></div>
+</div>
+
+<div class="result-card" id="resultCard">
+    <div class="result-header">
+        <span>Current Code</span>
+        <div class="timer-badge">
+            <div class="timer-dot" id="timerDot"></div>
+            <div class="timer-text">Refreshes in <span id="timerSeconds">30</span>s</div>
+        </div>
+    </div>
+    <div class="token-code" id="tokenCode">000 000</div>
+    <button class="btn-copy" id="copyBtn">
+        <i class="fas fa-copy"></i>
+        Copy Code
+    </button>
+    <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="history-section" id="historySection" style="display:none;">
+        <div class="history-label">Recent</div>
+        <div class="history-list" id="historyList"></div>
+    </div>
+</div>
+
+<footer>
+    <p>Powered by <a href="https://github.com/Ridwanzanphelibelll/Auth2FA" target="_blank">RSCoders</a> © <span id="current-year"></span></p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    document.getElementById('current-year').textContent = new Date().getFullYear();
+
+    let currentSecret = '';
+    let timerInterval = null;
+    let history = [];
+
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    function formatToken(token) {
+        if (!token || token.length !== 6) return token;
+        return token.slice(0, 3) + ' ' + token.slice(3);
+    }
+
+    async function generate() {
+        const secret = document.getElementById('secretInput').value.trim();
+        const errorMsg = document.getElementById('errorMsg');
+        const btn = document.getElementById('generateBtn');
+
+        errorMsg.classList.remove('show');
+
+        if (!secret) {
+            errorMsg.textContent = 'Please enter a secret key.';
+            errorMsg.classList.add('show');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+
+        try {
+            const res = await fetch('/api/totp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ secret })
+            });
+            const data = await res.json();
+
+            if (!data.status) {
+                errorMsg.textContent = data.message;
+                errorMsg.classList.add('show');
+                return;
+            }
+
+            currentSecret = secret;
+            addToHistory(secret, data.data.token);
+            updateDisplay(data.data);
+            document.getElementById('resultCard').classList.add('show');
+            startTimer();
+
+        } catch (e) {
+            errorMsg.textContent = 'Network error. Please try again.';
+            errorMsg.classList.add('show');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-key"></i> Generate Code';
+        }
+    }
+
+    function updateDisplay({ token, timeRemaining, period }) {
+        const tokenEl = document.getElementById('tokenCode');
+        const timerEl = document.getElementById('timerSeconds');
+        const progressEl = document.getElementById('progressBar');
+        const dotEl = document.getElementById('timerDot');
+
+        tokenEl.textContent = formatToken(token);
+        timerEl.textContent = timeRemaining;
+
+        const pct = (timeRemaining / period) * 100;
+        progressEl.style.width = pct + '%';
+
+        const urgent = timeRemaining <= 5;
+        tokenEl.classList.toggle('urgent', urgent);
+        progressEl.classList.toggle('urgent', urgent);
+        dotEl.classList.toggle('urgent', urgent);
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(async () => {
+            if (!currentSecret) return;
+            try {
+                const res = await fetch('/api/totp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ secret: currentSecret })
+                });
+                const data = await res.json();
+                if (data.status) {
+                    const prev = document.getElementById('tokenCode').textContent.replace(/\s/g, '');
+                    if (prev !== data.data.token) {
+                        addToHistory(currentSecret, data.data.token);
+                    }
+                    updateDisplay(data.data);
+                }
+            } catch (e) {}
+        }, 1000);
+    }
+
+    async function copyCode() {
+        const raw = document.getElementById('tokenCode').textContent.replace(/\s/g, '');
+        try {
+            await navigator.clipboard.writeText(raw);
+            const btn = document.getElementById('copyBtn');
+            btn.classList.add('copied');
+            btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            showToast('Code copied to clipboard!');
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = '<i class="fas fa-copy"></i> Copy Code';
+            }, 1800);
+        } catch (e) {
+            showToast('Failed to copy.');
+        }
+    }
+
+    function maskSecret(secret) {
+        if (secret.length <= 8) return secret;
+        return secret.slice(0, 4) + '••••' + secret.slice(-4);
+    }
+
+    function addToHistory(secret, token) {
+        const existing = history.findIndex(h => h.secret === secret);
+        if (existing !== -1) {
+            history[existing].token = token;
+        } else {
+            history.unshift({ secret, token });
+            if (history.length > 5) history = history.slice(0, 5);
+        }
+        renderHistory();
+    }
+
+    function renderHistory() {
+        const section = document.getElementById('historySection');
+        const list = document.getElementById('historyList');
+        if (history.length === 0) { section.style.display = 'none'; return; }
+        section.style.display = 'block';
+        list.innerHTML = history.map((h, i) => `
+            <div class="history-item">
+                <div class="history-item-left">
+                    <div class="history-secret">${maskSecret(h.secret)}</div>
+                    <div class="history-token">${formatToken(h.token)}</div>
+                </div>
+                <button class="history-copy-btn" onclick="copyHistoryItem(${i}, this)" title="Copy">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+
+    async function copyHistoryItem(index, btn) {
+        const raw = history[index].token;
+        try {
+            await navigator.clipboard.writeText(raw);
+            btn.innerHTML = '<i class="fas fa-check"></i>';
+            showToast('Code copied successfully!');
+            setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i>'; }, 1500);
+        } catch (e) {
+            showToast('Failed to copy.');
+        }
+    }
+
+    document.getElementById('generateBtn').addEventListener('click', generate);
+    document.getElementById('copyBtn').addEventListener('click', copyCode);
+    document.getElementById('secretInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') generate();
+    });
+</script>
+
+</body>
+</html>
