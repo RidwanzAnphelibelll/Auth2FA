@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2FA Authenticator</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%234285f4' d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4l5 2.18V11c0 3.5-2.33 6.79-5 7.93-2.67-1.14-5-4.43-5-7.93V7.18L12 5z'/></svg>" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -48,9 +49,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.75rem;
-            color: white;
             margin: 0 auto 1rem;
+        }
+
+        .app-header .logo svg {
+            width: 36px;
+            height: 36px;
         }
 
         .app-header h1 {
@@ -257,76 +261,6 @@
 
         .progress-bar.urgent { background: var(--error); }
 
-        .history-section {
-            margin-top: 1.25rem;
-            padding-top: 1.25rem;
-            border-top: 1px solid var(--card-border);
-        }
-
-        .history-label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 0.75rem;
-        }
-
-        .history-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .history-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.625rem 0.875rem;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            border: 1px solid var(--card-border);
-            gap: 0.5rem;
-        }
-
-        .history-item-left {
-            display: flex;
-            flex-direction: column;
-            gap: 0.125rem;
-            min-width: 0;
-        }
-
-        .history-secret {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            font-family: monospace;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .history-token {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            font-family: 'Roboto Mono', monospace;
-            letter-spacing: 0.15em;
-        }
-
-        .history-copy-btn {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-            flex-shrink: 0;
-        }
-
-        .history-copy-btn:hover { color: var(--accent-primary); background: rgba(66, 133, 244, 0.1); }
-
         .toast {
             position: fixed;
             bottom: 2rem;
@@ -352,6 +286,7 @@
         footer {
             margin-top: auto;
             padding-top: 1.5rem;
+            margin-bottom: 1.5rem;
             text-align: center;
             color: var(--text-secondary);
             font-size: 0.8rem;
@@ -364,7 +299,11 @@
 <body>
 
 <div class="app-header">
-    <div class="logo"><i class="fas fa-shield-halved"></i></div>
+    <div class="logo">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
+            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4l5 2.18V11c0 3.5-2.33 6.79-5 7.93-2.67-1.14-5-4.43-5-7.93V7.18L12 5z"/>
+        </svg>
+    </div>
     <h1>2FA Authenticator</h1>
     <p>Generate time-based one-time passwords</p>
 </div>
@@ -387,6 +326,7 @@
             <div class="timer-text">Refreshes in <span id="timerSeconds">30</span>s</div>
         </div>
     </div>
+    
     <div class="token-code" id="tokenCode">000 000</div>
     <button class="btn-copy" id="copyBtn">
         <i class="fas fa-copy"></i>
@@ -394,10 +334,6 @@
     </button>
     <div class="progress-bar-wrap">
         <div class="progress-bar" id="progressBar"></div>
-    </div>
-    <div class="history-section" id="historySection" style="display:none;">
-        <div class="history-label">Recent</div>
-        <div class="history-list" id="historyList"></div>
     </div>
 </div>
 
@@ -412,7 +348,6 @@
 
     let currentSecret = '';
     let timerInterval = null;
-    let history = [];
 
     function showToast(msg) {
         const toast = document.getElementById('toast');
@@ -457,7 +392,6 @@
             }
 
             currentSecret = secret;
-            addToHistory(secret, data.data.token);
             updateDisplay(data.data);
             document.getElementById('resultCard').classList.add('show');
             startTimer();
@@ -501,10 +435,6 @@
                 });
                 const data = await res.json();
                 if (data.status) {
-                    const prev = document.getElementById('tokenCode').textContent.replace(/\s/g, '');
-                    if (prev !== data.data.token) {
-                        addToHistory(currentSecret, data.data.token);
-                    }
                     updateDisplay(data.data);
                 }
             } catch (e) {}
@@ -528,57 +458,12 @@
         }
     }
 
-    function maskSecret(secret) {
-        if (secret.length <= 8) return secret;
-        return secret.slice(0, 4) + '••••' + secret.slice(-4);
-    }
-
-    function addToHistory(secret, token) {
-        const existing = history.findIndex(h => h.secret === secret);
-        if (existing !== -1) {
-            history[existing].token = token;
-        } else {
-            history.unshift({ secret, token });
-            if (history.length > 5) history = history.slice(0, 5);
-        }
-        renderHistory();
-    }
-
-    function renderHistory() {
-        const section = document.getElementById('historySection');
-        const list = document.getElementById('historyList');
-        if (history.length === 0) { section.style.display = 'none'; return; }
-        section.style.display = 'block';
-        list.innerHTML = history.map((h, i) => `
-            <div class="history-item">
-                <div class="history-item-left">
-                    <div class="history-secret">${maskSecret(h.secret)}</div>
-                    <div class="history-token">${formatToken(h.token)}</div>
-                </div>
-                <button class="history-copy-btn" onclick="copyHistoryItem(${i}, this)" title="Copy">
-                    <i class="fas fa-copy"></i>
-                </button>
-            </div>
-        `).join('');
-    }
-
-    async function copyHistoryItem(index, btn) {
-        const raw = history[index].token;
-        try {
-            await navigator.clipboard.writeText(raw);
-            btn.innerHTML = '<i class="fas fa-check"></i>';
-            showToast('Code copied successfully!');
-            setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i>'; }, 1500);
-        } catch (e) {
-            showToast('Failed to copy.');
-        }
-    }
-
     document.getElementById('generateBtn').addEventListener('click', generate);
     document.getElementById('copyBtn').addEventListener('click', copyCode);
     document.getElementById('secretInput').addEventListener('keydown', (e) => {
         if (e.key === 'Enter') generate();
     });
+    
 </script>
 
 </body>
