@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="2FA Authenticator - Generate secure TOTP codes instantly and easily.">
     <title>2FA Authenticator</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%234285f4' d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4l5 2.18V11c0 3.5-2.33 6.79-5 7.93-2.67-1.14-5-4.43-5-7.93V7.18L12 5z'/></svg>" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -88,9 +89,16 @@
             margin-bottom: 0.625rem;
         }
 
-        .input-section input {
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .input-wrapper input {
             width: 100%;
-            padding: 0.875rem 1rem;
+            padding: 0.875rem 2.5rem 0.875rem 1rem;
             background: var(--input-bg);
             border: 1px solid var(--card-border);
             border-radius: 10px;
@@ -99,18 +107,38 @@
             font-family: 'Roboto Mono', monospace;
             letter-spacing: 0.05em;
             transition: border-color 0.2s;
-            margin-bottom: 0.75rem;
         }
 
-        .input-section input:focus {
+        .input-wrapper input:focus {
             outline: none;
             border-color: var(--accent-primary);
         }
 
-        .input-section input::placeholder {
+        .input-wrapper input::placeholder {
             color: var(--text-secondary);
             font-family: inherit;
             letter-spacing: normal;
+        }
+
+        .clear-btn {
+            position: absolute;
+            right: 10px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 6px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .clear-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255,255,255,0.08);
         }
 
         .btn-generate {
@@ -310,7 +338,13 @@
 
 <div class="card input-section">
     <label>Secret Key</label>
-    <input type="text" id="secretInput" placeholder="Enter your secret key" autocomplete="off" spellcheck="false">
+    <div class="input-wrapper">
+        <input type="text" id="secretInput" placeholder="Enter your secret key" autocomplete="off" spellcheck="false">
+        <button type="button" id="clearBtn" class="clear-btn" style="display: none;">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    
     <button class="btn-generate" id="generateBtn">
         <i class="fas fa-key"></i>
         Generate Code
@@ -332,6 +366,7 @@
         <i class="fas fa-copy"></i>
         Copy Code
     </button>
+    
     <div class="progress-bar-wrap">
         <div class="progress-bar" id="progressBar"></div>
     </div>
@@ -349,6 +384,27 @@
     let currentSecret = '';
     let timerInterval = null;
 
+    const secretInput = document.getElementById('secretInput');
+    const clearBtn = document.getElementById('clearBtn');
+
+    secretInput.addEventListener('input', function() {
+        if (secretInput.value.trim()) {
+            clearBtn.style.display = 'flex';
+        } else {
+            clearBtn.style.display = 'none';
+        }
+    });
+
+    clearBtn.addEventListener('click', function() {
+        secretInput.value = '';
+        clearBtn.style.display = 'none';
+        document.getElementById('errorMsg').classList.remove('show');
+        document.getElementById('resultCard').classList.remove('show');
+        currentSecret = '';
+        if (timerInterval) clearInterval(timerInterval);
+        secretInput.focus();
+    });
+
     function showToast(msg) {
         const toast = document.getElementById('toast');
         toast.textContent = msg;
@@ -362,7 +418,7 @@
     }
 
     async function generate() {
-        const secret = document.getElementById('secretInput').value.trim();
+        const secret = secretInput.value.trim();
         const errorMsg = document.getElementById('errorMsg');
         const btn = document.getElementById('generateBtn');
 
@@ -460,10 +516,9 @@
 
     document.getElementById('generateBtn').addEventListener('click', generate);
     document.getElementById('copyBtn').addEventListener('click', copyCode);
-    document.getElementById('secretInput').addEventListener('keydown', (e) => {
+    secretInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') generate();
     });
-    
 </script>
 
 </body>
