@@ -1,0 +1,16 @@
+{
+  "name": "Auth2FA",
+  "main": "index.js",
+  
+  "scripts": {
+    "start": "node index.js"
+  },
+  
+  "author": "RSCoders",
+  
+  "dependencies": {
+    "express": "^5.1.0",
+    "chalk": "^4.1.2",
+    "cors": "^2.8.5"
+  }
+}
