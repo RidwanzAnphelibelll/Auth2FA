@@ -4,152 +4,298 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="2FA Authenticator - Generate secure TOTP codes instantly and easily.">
+    <meta name="description" content="2FA Authenticator - Generate TOTP and HOTP codes instantly.">
     <title>2FA Authenticator</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%234285f4' d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4l5 2.18V11c0 3.5-2.33 6.79-5 7.93-2.67-1.14-5-4.43-5-7.93V7.18L12 5z'/></svg>" type="image/svg+xml">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%2300d4aa' d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z'/></svg>" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg-primary: #1f2937;
-            --bg-secondary: #111827;
-            --text-primary: #f3f4f6;
-            --text-secondary: #9ca3af;
-            --accent-primary: #4285f4;
-            --accent-hover: #3367d6;
-            --success: #34a853;
-            --error: #ea4335;
-            --card-bg: #374151;
-            --card-border: #4b5563;
-            --input-bg: #4b5563;
+            --bg: #080c10;
+            --surface: #0d1117;
+            --surface2: #161b22;
+            --border: #21262d;
+            --border2: #30363d;
+            --text: #e6edf3;
+            --muted: #7d8590;
+            --accent: #00d4aa;
+            --accent2: #00b894;
+            --accent-dim: rgba(0,212,170,0.12);
+            --accent-glow: rgba(0,212,170,0.25);
+            --warn: #f0883e;
+            --danger: #ff6b6b;
+            --danger-dim: rgba(255,107,107,0.12);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
+            font-family: 'Syne', sans-serif;
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 2rem 1rem 3rem;
+            padding: 2.5rem 1rem 4rem;
+            position: relative;
+            overflow-x: hidden;
         }
 
-        .app-header {
-            text-align: center;
-            margin-bottom: 2rem;
+        body::before {
+            content: '';
+            position: fixed;
+            top: -30%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0,212,170,0.06) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wrap {
+            position: relative;
+            z-index: 1;
             width: 100%;
-            max-width: 440px;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        .app-header .logo {
-            width: 64px;
-            height: 64px;
-            background: var(--accent-primary);
-            border-radius: 18px;
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            animation: fadeDown 0.6s ease both;
+        }
+
+        .shield {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1.25rem;
+            position: relative;
+        }
+
+        .shield svg {
+            width: 60px;
+            height: 60px;
+            filter: drop-shadow(0 0 16px var(--accent-glow));
+        }
+
+        .header h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--text);
+            margin-bottom: 0.3rem;
+        }
+
+        .header h1 span {
+            color: var(--accent);
+        }
+
+        .header p {
+            font-size: 0.8rem;
+            color: var(--muted);
+            font-family: 'IBM Plex Mono', monospace;
+            letter-spacing: 0.04em;
+        }
+
+        .type-toggle {
+            width: 100%;
+            display: flex;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 1rem;
+            gap: 4px;
+            animation: fadeUp 0.6s 0.1s ease both;
+        }
+
+        .type-btn {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: transparent;
+            color: var(--muted);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 1rem;
+            gap: 0.5rem;
         }
 
-        .app-header .logo svg {
-            width: 36px;
-            height: 36px;
+        .type-btn.active {
+            background: var(--accent-dim);
+            color: var(--accent);
+            border: 1px solid rgba(0,212,170,0.3);
+            box-shadow: 0 0 16px var(--accent-dim);
         }
 
-        .app-header h1 {
-            font-size: 1.5rem;
-            font-weight: 500;
-            margin-bottom: 0.25rem;
-        }
-
-        .app-header p {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
+        .type-btn:not(.active):hover {
+            background: var(--surface2);
+            color: var(--text);
         }
 
         .card {
-            background: var(--card-bg);
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
             border-radius: 16px;
-            border: 1px solid var(--card-border);
             padding: 1.5rem;
-            width: 100%;
-            max-width: 440px;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1rem;
+            animation: fadeUp 0.6s 0.15s ease both;
+            transition: border-color 0.3s;
         }
 
-        .input-section label {
-            display: block;
-            font-size: 0.75rem;
+        .card:focus-within {
+            border-color: var(--border2);
+        }
+
+        .field-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.68rem;
             font-weight: 600;
-            color: var(--text-secondary);
+            letter-spacing: 0.12em;
+            color: var(--muted);
             text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 0.625rem;
+            margin-bottom: 0.5rem;
+            display: block;
         }
 
-        .input-wrapper {
+        .input-wrap {
             position: relative;
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.75rem;
+            margin-bottom: 1rem;
         }
 
-        .input-wrapper input {
+        .input-wrap input {
             width: 100%;
-            padding: 0.875rem 2.5rem 0.875rem 1rem;
-            background: var(--input-bg);
-            border: 1px solid var(--card-border);
+            padding: 0.8rem 2.75rem 0.8rem 1rem;
+            background: var(--surface2);
+            border: 1px solid var(--border);
             border-radius: 10px;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            font-family: 'Roboto Mono', monospace;
-            letter-spacing: 0.05em;
-            transition: border-color 0.2s;
-        }
-
-        .input-wrapper input:focus {
+            color: var(--text);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.875rem;
+            letter-spacing: 0.04em;
+            transition: border-color 0.2s, box-shadow 0.2s;
             outline: none;
-            border-color: var(--accent-primary);
         }
 
-        .input-wrapper input::placeholder {
-            color: var(--text-secondary);
-            font-family: inherit;
-            letter-spacing: normal;
+        .input-wrap input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-dim);
+        }
+
+        .input-wrap input::placeholder {
+            color: var(--border2);
+            font-family: 'IBM Plex Mono', monospace;
         }
 
         .clear-btn {
             position: absolute;
             right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
             background: none;
             border: none;
-            color: var(--text-secondary);
+            color: var(--muted);
             cursor: pointer;
-            padding: 6px;
+            padding: 5px;
             display: none;
             align-items: center;
             justify-content: center;
-            border-radius: 6px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            transition: color 0.2s;
+        }
+
+        .clear-btn:hover { color: var(--text); }
+
+        .hotp-fields {
+            display: none;
+            animation: fadeUp 0.3s ease both;
+        }
+
+        .hotp-fields.show { display: block; }
+
+        .counter-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            align-items: stretch;
+        }
+
+        .counter-row input[type="number"] {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.875rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            -moz-appearance: textfield;
+        }
+
+        .counter-row input[type="number"]::-webkit-inner-spin-button,
+        .counter-row input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+        .counter-row input[type="number"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-dim);
+        }
+
+        .counter-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .counter-btns button {
+            width: 34px;
+            flex: 1;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 0.7rem;
             transition: all 0.2s;
-            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .clear-btn:hover {
-            color: var(--text-primary);
-            background: rgba(255,255,255,0.08);
+        .counter-btns button:hover {
+            background: var(--accent-dim);
+            border-color: rgba(0,212,170,0.3);
+            color: var(--accent);
         }
 
-        .btn-generate {
+        .btn-gen {
             width: 100%;
-            padding: 0.875rem;
-            background: var(--accent-primary);
-            color: white;
+            padding: 0.85rem;
+            background: var(--accent);
+            color: #080c10;
             border: none;
             border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.95rem;
+            font-family: 'Syne', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
@@ -158,109 +304,177 @@
             gap: 0.5rem;
         }
 
-        .btn-generate:hover { background: var(--accent-hover); }
-        .btn-generate:disabled { opacity: 0.6; cursor: not-allowed; }
-
-        .error-msg {
-            margin-top: 0.625rem;
-            font-size: 0.8rem;
-            color: var(--error);
-            display: none;
+        .btn-gen:hover {
+            background: var(--accent2);
+            box-shadow: 0 4px 20px var(--accent-glow);
+            transform: translateY(-1px);
         }
 
-        .error-msg.show { display: block; }
+        .btn-gen:active { transform: translateY(0); }
+        .btn-gen:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .err {
+            margin-top: 0.75rem;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--danger);
+            display: none;
+            padding: 0.5rem 0.75rem;
+            background: var(--danger-dim);
+            border-radius: 6px;
+            border: 1px solid rgba(255,107,107,0.2);
+        }
+
+        .err.show { display: block; }
 
         .result-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            border: 1px solid var(--card-border);
-            padding: 1.5rem;
             width: 100%;
-            max-width: 440px;
-            margin-bottom: 1.25rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
             display: none;
+            animation: fadeUp 0.4s ease both;
         }
 
         .result-card.show { display: block; }
 
-        .result-header {
+        .result-meta {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1.5rem;
             flex-wrap: wrap;
             gap: 0.5rem;
         }
 
-        .result-header span {
-            font-size: 0.75rem;
+        .result-type-tag {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.68rem;
             font-weight: 600;
-            color: var(--text-secondary);
+            letter-spacing: 0.12em;
+            color: var(--accent);
             text-transform: uppercase;
-            letter-spacing: 0.08em;
+            background: var(--accent-dim);
+            border: 1px solid rgba(0,212,170,0.2);
+            padding: 0.3rem 0.7rem;
+            border-radius: 20px;
         }
 
-        .timer-badge {
+        .timer-pill {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            background: var(--bg-secondary);
-            padding: 0.375rem 0.75rem;
-            border-radius: 2rem;
-            border: 1px solid var(--card-border);
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            padding: 0.3rem 0.75rem;
+            border-radius: 20px;
         }
 
-        .timer-dot {
-            width: 8px;
-            height: 8px;
+        .pulse-dot {
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
-            background: var(--success);
-            animation: pulse 1s ease-in-out infinite;
+            background: var(--accent);
             flex-shrink: 0;
+            animation: blink 1.2s ease-in-out infinite;
         }
 
-        .timer-dot.urgent { background: var(--error); animation: none; }
+        .pulse-dot.hot {
+            background: var(--danger);
+            animation: none;
+        }
 
-        @keyframes pulse {
+        @keyframes blink {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
+            50% { opacity: 0.25; }
         }
 
-        .timer-text {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-            white-space: nowrap;
+        .timer-pill span {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--muted);
         }
 
-        .timer-text span {
-            color: var(--text-primary);
-            font-weight: 600;
+        .timer-pill span b {
+            color: var(--text);
         }
 
-        .token-code {
-            font-size: 3rem;
-            font-weight: 400;
-            letter-spacing: 0.25em;
-            color: var(--accent-primary);
-            font-family: 'Roboto Mono', 'Courier New', monospace;
-            line-height: 1;
+        .counter-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            padding: 0.3rem 0.75rem;
+            border-radius: 20px;
+        }
+
+        .counter-pill span {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+
+        .counter-pill span b {
+            color: var(--accent);
+        }
+
+        .otp-display {
             text-align: center;
             margin-bottom: 1.25rem;
-            transition: color 0.2s;
+            position: relative;
         }
 
-        .token-code.urgent { color: var(--error); }
+        .otp-code {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 3.25rem;
+            font-weight: 600;
+            letter-spacing: 0.3em;
+            color: var(--accent);
+            line-height: 1;
+            transition: color 0.3s, text-shadow 0.3s;
+            text-shadow: 0 0 30px var(--accent-glow);
+        }
+
+        .otp-code.hot {
+            color: var(--danger);
+            text-shadow: 0 0 30px rgba(255,107,107,0.3);
+        }
+
+        .otp-sep {
+            display: inline-block;
+            width: 0.3em;
+        }
+
+        .progress-track {
+            height: 3px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 1.25rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 2px;
+            transition: width 1s linear, background 0.3s;
+        }
+
+        .progress-fill.hot { background: var(--danger); }
 
         .btn-copy {
             width: 100%;
             padding: 0.75rem;
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            border: 1px solid var(--card-border);
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid var(--border);
             border-radius: 10px;
-            font-size: 0.9rem;
-            font-weight: 500;
+            font-family: 'Syne', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -269,41 +483,36 @@
             transition: all 0.2s;
         }
 
-        .btn-copy:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
-        .btn-copy.copied { border-color: var(--success); color: var(--success); background: rgba(52, 168, 83, 0.1); }
-
-        .progress-bar-wrap {
-            margin-top: 1.25rem;
-            height: 4px;
-            background: var(--card-border);
-            border-radius: 2px;
-            overflow: hidden;
+        .btn-copy:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-dim);
         }
 
-        .progress-bar {
-            height: 100%;
-            background: var(--accent-primary);
-            border-radius: 2px;
-            transition: width 1s linear, background 0.3s;
+        .btn-copy.copied {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-dim);
         }
-
-        .progress-bar.urgent { background: var(--error); }
 
         .toast {
             position: fixed;
             bottom: 2rem;
             left: 50%;
-            transform: translateX(-50%) translateY(1.5rem);
-            background: #323232;
-            color: white;
-            padding: 0.75rem 1.25rem;
-            border-radius: 8px;
-            font-size: 0.875rem;
+            transform: translateX(-50%) translateY(2rem);
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border2);
+            padding: 0.7rem 1.25rem;
+            border-radius: 10px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.8rem;
             opacity: 0;
             pointer-events: none;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             white-space: nowrap;
             z-index: 999;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
         }
 
         .toast.show {
@@ -313,120 +522,181 @@
 
         footer {
             margin-top: auto;
-            padding-top: 1.5rem;
-            margin-bottom: 1.5rem;
+            padding-top: 2rem;
             text-align: center;
-            color: var(--text-secondary);
-            font-size: 0.8rem;
+            color: var(--muted);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.72rem;
+            letter-spacing: 0.04em;
+            animation: fadeUp 0.6s 0.3s ease both;
         }
 
-        footer a { color: var(--accent-primary); text-decoration: none; }
-        footer a:hover { color: var(--accent-hover); }
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        footer a:hover { color: var(--accent2); }
+
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
 
-<div class="app-header">
-    <div class="logo">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
-            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4l5 2.18V11c0 3.5-2.33 6.79-5 7.93-2.67-1.14-5-4.43-5-7.93V7.18L12 5z"/>
-        </svg>
-    </div>
-    <h1>2FA Authenticator</h1>
-    <p>Generate time-based one-time passwords</p>
-</div>
+<div class="wrap">
 
-<div class="card input-section">
-    <label>Secret Key</label>
-    <div class="input-wrapper">
-        <input type="text" id="secretInput" placeholder="Enter your secret key" autocomplete="off" spellcheck="false">
-        <button type="button" id="clearBtn" class="clear-btn" style="display: none;">
-            <i class="fas fa-times"></i>
+    <div class="header">
+        <div class="shield">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L4 6V12C4 16.42 7.45 20.6 12 22C16.55 20.6 20 16.42 20 12V6L12 2Z" fill="rgba(0,212,170,0.15)" stroke="#00d4aa" stroke-width="1.5" stroke-linejoin="round"/>
+                <path d="M9 12L11 14L15 10" stroke="#00d4aa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        
+        <h1>2FA <span>Auth</span></h1>
+        <p>// one-time password generator</p>
+    </div>
+
+    <div class="type-toggle">
+        <button class="type-btn active" id="btnTOTP" onclick="switchType('totp')">
+            <i class="fas fa-clock"></i> TOTP
+        </button>
+        
+        <button class="type-btn" id="btnHOTP" onclick="switchType('hotp')">
+            <i class="fas fa-hashtag"></i> HOTP
         </button>
     </div>
-    
-    <button class="btn-generate" id="generateBtn">
-        <i class="fas fa-key"></i>
-        Generate Code
-    </button>
-    <div class="error-msg" id="errorMsg"></div>
-</div>
 
-<div class="result-card" id="resultCard">
-    <div class="result-header">
-        <span>Current Code</span>
-        <div class="timer-badge">
-            <div class="timer-dot" id="timerDot"></div>
-            <div class="timer-text">Refreshes in <span id="timerSeconds">30</span>s</div>
+    <div class="card">
+        <label class="field-label">Secret Key</label>
+        <div class="input-wrap">
+            <input type="text" id="secretInput" placeholder="JBSWY3DPEHPK3PXP" autocomplete="off" spellcheck="false">
+            <button type="button" id="clearBtn" class="clear-btn">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-    </div>
-    
-    <div class="token-code" id="tokenCode">000 000</div>
-    <button class="btn-copy" id="copyBtn">
-        <i class="fas fa-copy"></i>
-        Copy Code
-    </button>
-    
-    <div class="progress-bar-wrap">
-        <div class="progress-bar" id="progressBar"></div>
-    </div>
-</div>
 
-<footer>
-    <p>Powered by <a href="https://github.com/Ridwanzanphelibelll/Auth2FA" target="_blank">RSCoders</a> © <span id="current-year"></span></p>
-</footer>
+        <div class="hotp-fields" id="hotpFields">
+            <label class="field-label">Counter</label>
+            <div class="counter-row">
+                <input type="number" id="counterInput" value="0" min="0" placeholder="0">
+                <div class="counter-btns">
+                    <button type="button" onclick="adjCounter(1)"><i class="fas fa-plus"></i></button>
+                    <button type="button" onclick="adjCounter(-1)"><i class="fas fa-minus"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-gen" id="genBtn">
+            <i class="fas fa-key"></i> Generate Code
+        </button>
+        <div class="err" id="errMsg"></div>
+    </div>
+
+    <div class="result-card" id="resultCard">
+        <div class="result-meta">
+            <div class="result-type-tag" id="resultTag">TOTP</div>
+            <div class="timer-pill" id="timerPill">
+                <div class="pulse-dot" id="pulseDot"></div>
+                <span>in <b id="timerSec">30</b>s</span>
+            </div>
+            
+            <div class="counter-pill" id="counterPill" style="display:none;">
+                <i class="fas fa-hashtag" style="font-size:0.65rem;color:var(--muted)"></i>
+                <span>counter <b id="counterDisp">0</b></span>
+            </div>
+        </div>
+
+        <div class="otp-display">
+            <div class="otp-code" id="otpCode">000 000</div>
+        </div>
+
+        <div class="progress-track" id="progTrack">
+            <div class="progress-fill" id="progFill"></div>
+        </div>
+
+        <button class="btn-copy" id="copyBtn">
+            <i class="fas fa-copy"></i> Copy Code
+        </button>
+    </div>
+
+    <footer>
+        <p>Powered by <a href="https://github.com/Ridwanzanphelibelll/Auth2FA" target="_blank">RSCoders</a> &copy; <span id="yr"></span></p>
+    </footer>
+
+</div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-    document.getElementById('current-year').textContent = new Date().getFullYear();
+    document.getElementById('yr').textContent = new Date().getFullYear();
 
-    let currentSecret = '';
-    let timerInterval = null;
+    let activeSecret = '';
+    let activeType = 'totp';
+    let ticker = null;
 
     const secretInput = document.getElementById('secretInput');
     const clearBtn = document.getElementById('clearBtn');
 
-    secretInput.addEventListener('input', function() {
-        if (secretInput.value.trim()) {
-            clearBtn.style.display = 'flex';
-        } else {
-            clearBtn.style.display = 'none';
-        }
+    secretInput.addEventListener('input', () => {
+        clearBtn.style.display = secretInput.value.trim() ? 'flex' : 'none';
     });
 
-    clearBtn.addEventListener('click', function() {
+    clearBtn.addEventListener('click', () => {
         secretInput.value = '';
         clearBtn.style.display = 'none';
-        document.getElementById('errorMsg').classList.remove('show');
+        document.getElementById('errMsg').classList.remove('show');
         document.getElementById('resultCard').classList.remove('show');
-        currentSecret = '';
-        if (timerInterval) clearInterval(timerInterval);
+        activeSecret = '';
+        if (ticker) clearInterval(ticker);
         secretInput.focus();
     });
 
-    function showToast(msg) {
-        const toast = document.getElementById('toast');
-        toast.textContent = msg;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2200);
+    function switchType(t) {
+        activeType = t;
+        document.getElementById('btnTOTP').classList.toggle('active', t === 'totp');
+        document.getElementById('btnHOTP').classList.toggle('active', t === 'hotp');
+        document.getElementById('hotpFields').classList.toggle('show', t === 'hotp');
+        document.getElementById('resultCard').classList.remove('show');
+        document.getElementById('errMsg').classList.remove('show');
+        activeSecret = '';
+        if (ticker) clearInterval(ticker);
     }
 
-    function formatToken(token) {
-        if (!token || token.length !== 6) return token;
-        return token.slice(0, 3) + ' ' + token.slice(3);
+    function adjCounter(d) {
+        const inp = document.getElementById('counterInput');
+        inp.value = Math.max(0, (parseInt(inp.value) || 0) + d);
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function fmtToken(tok) {
+        if (!tok || tok.length !== 6) return tok;
+        return tok.slice(0, 3) + ' ' + tok.slice(3);
     }
 
     async function generate() {
         const secret = secretInput.value.trim();
-        const errorMsg = document.getElementById('errorMsg');
-        const btn = document.getElementById('generateBtn');
-
-        errorMsg.classList.remove('show');
+        const errEl = document.getElementById('errMsg');
+        const btn = document.getElementById('genBtn');
+        errEl.classList.remove('show');
 
         if (!secret) {
-            errorMsg.textContent = 'Please enter a secret key.';
-            errorMsg.classList.add('show');
+            errEl.textContent = 'Secret key is required.';
+            errEl.classList.add('show');
             return;
         }
 
@@ -434,77 +704,103 @@
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
 
         try {
-            const res = await fetch('/api/totp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ secret })
-            });
-            const data = await res.json();
-
-            if (!data.status) {
-                errorMsg.textContent = data.message;
-                errorMsg.classList.add('show');
-                return;
+            if (activeType === 'totp') {
+                const res = await fetch('/api/totp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ secret })
+                });
+                const data = await res.json();
+                if (!data.status) {
+                    errEl.textContent = data.message;
+                    errEl.classList.add('show');
+                    return;
+                }
+                activeSecret = secret;
+                renderTOTP(data.data);
+                document.getElementById('timerPill').style.display = 'flex';
+                document.getElementById('counterPill').style.display = 'none';
+                document.getElementById('progTrack').style.display = 'block';
+                document.getElementById('resultTag').textContent = 'TOTP';
+                document.getElementById('resultCard').classList.add('show');
+                startTicker();
+            } else {
+                const counter = parseInt(document.getElementById('counterInput').value) || 0;
+                const res = await fetch('/api/hotp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ secret, counter })
+                });
+                const data = await res.json();
+                if (!data.status) {
+                    errEl.textContent = data.message;
+                    errEl.classList.add('show');
+                    return;
+                }
+                if (ticker) clearInterval(ticker);
+                activeSecret = '';
+                renderHOTP(data.data);
+                document.getElementById('timerPill').style.display = 'none';
+                document.getElementById('counterPill').style.display = 'flex';
+                document.getElementById('progTrack').style.display = 'none';
+                document.getElementById('resultTag').textContent = 'HOTP';
+                document.getElementById('resultCard').classList.add('show');
             }
-
-            currentSecret = secret;
-            updateDisplay(data.data);
-            document.getElementById('resultCard').classList.add('show');
-            startTimer();
-
         } catch (e) {
-            errorMsg.textContent = 'Network error. Please try again.';
-            errorMsg.classList.add('show');
+            errEl.textContent = 'Network error. Please try again.';
+            errEl.classList.add('show');
         } finally {
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-key"></i> Generate Code';
         }
     }
 
-    function updateDisplay({ token, timeRemaining, period }) {
-        const tokenEl = document.getElementById('tokenCode');
-        const timerEl = document.getElementById('timerSeconds');
-        const progressEl = document.getElementById('progressBar');
-        const dotEl = document.getElementById('timerDot');
+    function renderTOTP({ token, timeRemaining, period }) {
+        const code = document.getElementById('otpCode');
+        const sec = document.getElementById('timerSec');
+        const fill = document.getElementById('progFill');
+        const dot = document.getElementById('pulseDot');
+        const hot = timeRemaining <= 5;
 
-        tokenEl.textContent = formatToken(token);
-        timerEl.textContent = timeRemaining;
-
-        const pct = (timeRemaining / period) * 100;
-        progressEl.style.width = pct + '%';
-
-        const urgent = timeRemaining <= 5;
-        tokenEl.classList.toggle('urgent', urgent);
-        progressEl.classList.toggle('urgent', urgent);
-        dotEl.classList.toggle('urgent', urgent);
+        code.textContent = fmtToken(token);
+        code.classList.toggle('hot', hot);
+        sec.textContent = timeRemaining;
+        fill.style.width = ((timeRemaining / period) * 100) + '%';
+        fill.classList.toggle('hot', hot);
+        dot.classList.toggle('hot', hot);
     }
 
-    function startTimer() {
-        if (timerInterval) clearInterval(timerInterval);
-        timerInterval = setInterval(async () => {
-            if (!currentSecret) return;
+    function renderHOTP({ token, counter }) {
+        const code = document.getElementById('otpCode');
+        code.classList.remove('hot');
+        code.textContent = fmtToken(token);
+        document.getElementById('counterDisp').textContent = counter;
+    }
+
+    function startTicker() {
+        if (ticker) clearInterval(ticker);
+        ticker = setInterval(async () => {
+            if (!activeSecret) return;
             try {
                 const res = await fetch('/api/totp', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ secret: currentSecret })
+                    body: JSON.stringify({ secret: activeSecret })
                 });
                 const data = await res.json();
-                if (data.status) {
-                    updateDisplay(data.data);
-                }
+                if (data.status) renderTOTP(data.data);
             } catch (e) {}
         }, 1000);
     }
 
     async function copyCode() {
-        const raw = document.getElementById('tokenCode').textContent.replace(/\s/g, '');
+        const raw = document.getElementById('otpCode').textContent.replace(/\s/g, '');
         try {
             await navigator.clipboard.writeText(raw);
             const btn = document.getElementById('copyBtn');
             btn.classList.add('copied');
             btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-            showToast('Code copied to clipboard!');
+            showToast('Code copied!');
             setTimeout(() => {
                 btn.classList.remove('copied');
                 btn.innerHTML = '<i class="fas fa-copy"></i> Copy Code';
@@ -514,11 +810,10 @@
         }
     }
 
-    document.getElementById('generateBtn').addEventListener('click', generate);
+    document.getElementById('genBtn').addEventListener('click', generate);
     document.getElementById('copyBtn').addEventListener('click', copyCode);
-    secretInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') generate();
-    });
+    secretInput.addEventListener('keydown', e => { if (e.key === 'Enter') generate(); });
+    document.getElementById('counterInput').addEventListener('keydown', e => { if (e.key === 'Enter') generate(); });
 </script>
 
 </body>
