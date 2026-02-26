@@ -5,7 +5,7 @@ const path = require('path');
 const chalk = require('chalk');
 const express = require('express');
 
-const { generateTOTP } = require('./lib/totp');
+const { generateTOTP, generateHOTP } = require('./lib/2fa');
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -27,9 +27,29 @@ app.post('/api/totp', (req, res) => {
     if (clean.length < 16) {
         return res.status(400).json({ status: false, message: 'Secret key must be at least 16 characters!' });
     }
-    
     try {
         const result = generateTOTP(clean);
+        return res.json({ status: true, data: result });
+    } catch (e) {
+        return res.status(400).json({ status: false, message: 'Invalid secret key format!' });
+    }
+});
+
+app.post('/api/hotp', (req, res) => {
+    const { secret, counter } = req.body;
+    if (!secret) {
+        return res.status(400).json({ status: false, message: 'Secret key is required!' });
+    }
+    const clean = secret.toUpperCase().replace(/\s+/g, '');
+    if (clean.length < 16) {
+        return res.status(400).json({ status: false, message: 'Secret key must be at least 16 characters!' });
+    }
+    const counterVal = parseInt(counter);
+    if (isNaN(counterVal) || counterVal < 0) {
+        return res.status(400).json({ status: false, message: 'Counter must be a non-negative integer!' });
+    }
+    try {
+        const result = generateHOTP(clean, counterVal);
         return res.json({ status: true, data: result });
     } catch (e) {
         return res.status(400).json({ status: false, message: 'Invalid secret key format!' });
