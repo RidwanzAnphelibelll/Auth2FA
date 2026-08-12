@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="2FA Authenticator - Generate TOTP and HOTP codes instantly.">
     <title>2FA Authenticator</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%2300d4aa' d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z'/></svg>" type="image/svg+xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,8 +37,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 2.5rem 1rem 4rem;
-            position: relative;
             overflow-x: hidden;
         }
 
@@ -51,770 +48,1148 @@
             transform: translateX(-50%);
             width: 600px;
             height: 600px;
-            background: radial-gradient(circle, rgba(0,212,170,0.06) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(0,212,170,0.05) 0%, transparent 70%);
             pointer-events: none;
             z-index: 0;
         }
 
-        .wrap {
-            position: relative;
-            z-index: 1;
+        .app-bar {
             width: 100%;
-            max-width: 420px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 2.5rem;
-            animation: fadeDown 0.6s ease both;
-        }
-
-        .shield {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 1.25rem;
-            position: relative;
-        }
-
-        .shield svg {
-            width: 60px;
-            height: 60px;
-            filter: drop-shadow(0 0 16px var(--accent-glow));
-        }
-
-        .header h1 {
-            font-size: 1.6rem;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            color: var(--text);
-            margin-bottom: 0.3rem;
-        }
-
-        .header h1 span {
-            color: var(--accent);
-        }
-
-        .header p {
-            font-size: 0.8rem;
-            color: var(--muted);
-            font-family: 'IBM Plex Mono', monospace;
-            letter-spacing: 0.04em;
-        }
-
-        .type-toggle {
-            width: 100%;
-            display: flex;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 4px;
-            margin-bottom: 1rem;
-            gap: 4px;
-            animation: fadeUp 0.6s 0.1s ease both;
-        }
-
-        .type-btn {
-            flex: 1;
-            padding: 0.6rem 1rem;
-            border: none;
-            border-radius: 8px;
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.8rem;
-            font-weight: 600;
-            letter-spacing: 0.06em;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            background: transparent;
-            color: var(--muted);
+            max-width: 480px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .type-btn.active {
-            background: var(--accent-dim);
-            color: var(--accent);
-            border: 1px solid rgba(0,212,170,0.3);
-            box-shadow: 0 0 16px var(--accent-dim);
-        }
-
-        .type-btn:not(.active):hover {
-            background: var(--surface2);
-            color: var(--text);
-        }
-
-        .card {
-            width: 100%;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            animation: fadeUp 0.6s 0.15s ease both;
+            height: 56px;
+            padding: 0 4px 0 8px;
+            position: sticky;
+            top: 0;
+            background: var(--bg);
+            z-index: 100;
+            border-bottom: 1px solid transparent;
             transition: border-color 0.3s;
         }
 
-        .card:focus-within {
-            border-color: var(--border2);
+        .app-bar.scrolled { border-bottom-color: var(--border); }
+
+        .app-bar-back {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .app-bar-back:hover { background: var(--surface2); }
+
+        .app-bar-title {
+            flex: 1;
+            font-family: 'Syne', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+            padding: 0 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .app-bar-title span { color: var(--accent); }
+
+        .app-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .bar-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: var(--muted);
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .bar-btn:hover { background: var(--surface2); color: var(--text); }
+        .bar-btn.danger:hover { color: var(--danger); }
+        .bar-btn.rename:hover { color: var(--accent); }
+
+        .menu-wrap { position: relative; }
+
+        .dropdown {
+            position: absolute;
+            top: 46px;
+            right: 0;
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            border-radius: 10px;
+            min-width: 170px;
+            z-index: 200;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            display: none;
+            overflow: hidden;
+            animation: fadeScale 0.15s ease;
+        }
+
+        .dropdown.open { display: block; }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            font-family: 'Syne', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .dropdown-item i { width: 16px; color: var(--muted); font-size: 0.8rem; }
+        .dropdown-item:hover { background: var(--border); }
+
+        .main {
+            width: 100%;
+            max-width: 480px;
+            flex: 1;
+            position: relative;
+            z-index: 1;
+            padding-bottom: 80px;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 32px;
+            text-align: center;
+        }
+
+        .empty-shield {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 1.5rem;
+            opacity: 0.3;
+        }
+
+        .empty-shield svg { width: 72px; height: 72px; }
+
+        .empty-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.4rem;
+            opacity: 0.6;
+        }
+
+        .empty-sub {
+            font-size: 0.75rem;
+            color: var(--muted);
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .account-item {
+            display: flex;
+            align-items: center;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.15s;
+            position: relative;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .account-item:first-child { border-top: 1px solid var(--border); }
+        .account-item:active { background: var(--surface2); }
+        .account-item.active-detail { background: var(--surface); }
+
+        .account-info { flex: 1; min-width: 0; }
+
+        .acc-name {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-bottom: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .acc-code {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 2.2rem;
+            font-weight: 300;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            line-height: 1;
+            text-shadow: 0 0 20px var(--accent-glow);
+            transition: color 0.3s, text-shadow 0.3s;
+        }
+
+        .acc-code.hot {
+            color: var(--danger);
+            text-shadow: 0 0 20px rgba(255,107,107,0.3);
+        }
+
+        .acc-right {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            margin-left: 16px;
+        }
+
+        .ring-svg { transform: rotate(-90deg); display: block; }
+        .ring-bg { fill: none; stroke: var(--surface2); stroke-width: 3.5; }
+        .ring-fill {
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 3.5;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s linear, stroke 0.3s;
+        }
+        .ring-fill.hot { stroke: var(--danger); }
+
+        .ring-sec {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--muted);
+            text-align: center;
+            line-height: 1;
+        }
+
+        .hotp-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 1px solid var(--border2);
+            background: var(--surface2);
+            color: var(--accent);
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .hotp-btn:hover { background: var(--accent-dim); border-color: var(--accent); }
+
+        .hotp-ctr {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.55rem;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .section-header {
+            padding: 20px 20px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        .section-count {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--border2);
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: max(16px, calc(50vw - 224px));
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: none;
+            color: #080c10;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px var(--accent-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            z-index: 50;
+            font-weight: 700;
+        }
+
+        .fab:hover { transform: scale(1.07); box-shadow: 0 6px 28px rgba(0,212,170,0.4); }
+        .fab:active { transform: scale(0.96); }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 300;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .overlay.open { display: flex; }
+
+        .bottom-sheet {
+            width: 100%;
+            max-width: 480px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-bottom: none;
+            border-radius: 20px 20px 0 0;
+            padding: 8px 0 0;
+            animation: slideUp 0.28s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .sheet-handle {
+            width: 40px;
+            height: 4px;
+            background: var(--border2);
+            border-radius: 2px;
+            margin: 0 auto 20px;
+        }
+
+        .sheet-inner { padding: 0 20px 40px; }
+
+        .sheet-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.5rem;
+            color: var(--text);
         }
 
         .field-label {
             font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.68rem;
+            font-size: 0.65rem;
             font-weight: 600;
             letter-spacing: 0.12em;
             color: var(--muted);
             text-transform: uppercase;
-            margin-bottom: 0.5rem;
+            margin-bottom: 6px;
             display: block;
         }
 
-        .input-wrap {
-            position: relative;
-            margin-bottom: 1rem;
-        }
+        .field-wrap { margin-bottom: 16px; }
 
-        .input-wrap input {
+        .f-input {
             width: 100%;
-            padding: 0.8rem 2.75rem 0.8rem 1rem;
+            padding: 12px 14px;
             background: var(--surface2);
             border: 1px solid var(--border);
             border-radius: 10px;
             color: var(--text);
             font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.875rem;
-            letter-spacing: 0.04em;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            font-size: 0.9rem;
+            letter-spacing: 0.03em;
             outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            appearance: none;
         }
 
-        .input-wrap input:focus {
+        .f-input:focus {
             border-color: var(--accent);
             box-shadow: 0 0 0 3px var(--accent-dim);
         }
 
-        .input-wrap input::placeholder {
-            color: var(--border2);
-            font-family: 'IBM Plex Mono', monospace;
-        }
+        .f-input::placeholder { color: var(--border2); font-size: 0.85rem; }
 
-        .clear-btn {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: var(--muted);
+        select.f-input {
             cursor: pointer;
-            padding: 5px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            border-radius: 5px;
-            font-size: 0.8rem;
-            transition: color 0.2s;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%237d8590' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: calc(100% - 14px) center;
+            padding-right: 36px;
         }
-
-        .clear-btn:hover { color: var(--text); }
-
-        .hotp-fields {
-            display: none;
-            animation: fadeUp 0.3s ease both;
-        }
-
-        .hotp-fields.show { display: block; }
 
         .counter-row {
             display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-            align-items: stretch;
+            align-items: center;
+            gap: 8px;
         }
 
-        .counter-row input[type="number"] {
-            flex: 1;
-            padding: 0.8rem 1rem;
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            color: var(--text);
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.875rem;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            -moz-appearance: textfield;
-        }
+        .counter-row .f-input { flex: 1; -moz-appearance: textfield; }
+        .counter-row .f-input::-webkit-inner-spin-button,
+        .counter-row .f-input::-webkit-outer-spin-button { -webkit-appearance: none; }
 
-        .counter-row input[type="number"]::-webkit-inner-spin-button,
-        .counter-row input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+        .ctr-btns { display: flex; flex-direction: column; gap: 4px; }
 
-        .counter-row input[type="number"]:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-dim);
-        }
-
-        .counter-btns {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .counter-btns button {
-            width: 34px;
-            flex: 1;
+        .ctr-btn {
+            width: 36px;
+            height: 26px;
             background: var(--surface2);
             border: 1px solid var(--border);
             border-radius: 8px;
             color: var(--muted);
             cursor: pointer;
-            font-size: 0.7rem;
-            transition: all 0.2s;
+            font-size: 0.75rem;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.2s;
         }
 
-        .counter-btns button:hover {
-            background: var(--accent-dim);
-            border-color: rgba(0,212,170,0.3);
-            color: var(--accent);
+        .ctr-btn:hover { background: var(--accent-dim); border-color: rgba(0,212,170,0.3); color: var(--accent); }
+
+        .err-msg {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--danger);
+            padding: 8px 12px;
+            background: var(--danger-dim);
+            border-radius: 8px;
+            border: 1px solid rgba(255,107,107,0.2);
+            margin-bottom: 14px;
+            display: none;
         }
 
-        .btn-gen {
-            width: 100%;
-            padding: 0.85rem;
-            background: var(--accent);
-            color: #080c10;
-            border: none;
-            border-radius: 10px;
+        .err-msg.show { display: block; }
+
+        .sheet-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .sbtn {
+            flex: 1;
+            padding: 13px;
+            border-radius: 12px;
             font-family: 'Syne', sans-serif;
             font-size: 0.9rem;
             font-weight: 700;
-            letter-spacing: 0.04em;
             cursor: pointer;
-            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
+            gap: 6px;
+            transition: all 0.2s;
+            border: none;
         }
 
-        .btn-gen:hover {
-            background: var(--accent2);
-            box-shadow: 0 4px 20px var(--accent-glow);
-            transform: translateY(-1px);
-        }
-
-        .btn-gen:active { transform: translateY(0); }
-        .btn-gen:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-
-        .err {
-            margin-top: 0.75rem;
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.75rem;
-            color: var(--danger);
-            display: none;
-            padding: 0.5rem 0.75rem;
-            background: var(--danger-dim);
-            border-radius: 6px;
-            border: 1px solid rgba(255,107,107,0.2);
-        }
-
-        .err.show { display: block; }
-
-        .result-card {
-            width: 100%;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            display: none;
-            animation: fadeUp 0.4s ease both;
-        }
-
-        .result-card.show { display: block; }
-
-        .result-meta {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .result-type-tag {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.68rem;
-            font-weight: 600;
-            letter-spacing: 0.12em;
-            color: var(--accent);
-            text-transform: uppercase;
-            background: var(--accent-dim);
-            border: 1px solid rgba(0,212,170,0.2);
-            padding: 0.3rem 0.7rem;
-            border-radius: 20px;
-        }
-
-        .timer-pill {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        .sbtn.cancel {
             background: var(--surface2);
-            border: 1px solid var(--border);
-            padding: 0.3rem 0.75rem;
-            border-radius: 20px;
-        }
-
-        .pulse-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: var(--accent);
-            flex-shrink: 0;
-            animation: blink 1.2s ease-in-out infinite;
-        }
-
-        .pulse-dot.hot {
-            background: var(--danger);
-            animation: none;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.25; }
-        }
-
-        .timer-pill span {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.75rem;
             color: var(--muted);
+            border: 1px solid var(--border);
         }
 
-        .timer-pill span b {
+        .sbtn.cancel:hover { background: var(--border); color: var(--text); }
+
+        .sbtn.primary {
+            background: var(--accent);
+            color: #080c10;
+        }
+
+        .sbtn.primary:hover { background: var(--accent2); box-shadow: 0 4px 16px var(--accent-glow); }
+
+        .sbtn.red {
+            background: var(--danger-dim);
+            color: var(--danger);
+            border: 1px solid rgba(255,107,107,0.25);
+        }
+
+        .sbtn.red:hover { background: rgba(255,107,107,0.2); }
+
+        .dialog-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 400;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .dialog-overlay.open { display: flex; }
+
+        .dialog {
+            background: var(--surface);
+            border: 1px solid var(--border2);
+            border-radius: 16px;
+            padding: 24px 20px 20px;
+            width: 100%;
+            max-width: 340px;
+            animation: fadeScale 0.2s ease;
+        }
+
+        @keyframes fadeScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .dlg-title {
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 8px;
             color: var(--text);
         }
 
-        .counter-pill {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            padding: 0.3rem 0.75rem;
-            border-radius: 20px;
-        }
-
-        .counter-pill span {
+        .dlg-sub {
             font-family: 'IBM Plex Mono', monospace;
             font-size: 0.75rem;
             color: var(--muted);
+            line-height: 1.6;
+            margin-bottom: 20px;
         }
 
-        .counter-pill span b {
-            color: var(--accent);
-        }
-
-        .otp-display {
-            text-align: center;
-            margin-bottom: 1.25rem;
-            position: relative;
-        }
-
-        .otp-code {
+        .dlg-name {
             font-family: 'IBM Plex Mono', monospace;
-            font-size: 3.25rem;
+            font-size: 0.8rem;
             font-weight: 600;
-            letter-spacing: 0.3em;
             color: var(--accent);
-            line-height: 1;
-            transition: color 0.3s, text-shadow 0.3s;
-            text-shadow: 0 0 30px var(--accent-glow);
+            background: var(--accent-dim);
+            border: 1px solid rgba(0,212,170,0.2);
+            border-radius: 6px;
+            padding: 6px 10px;
+            margin-bottom: 12px;
+            display: block;
         }
 
-        .otp-code.hot {
-            color: var(--danger);
-            text-shadow: 0 0 30px rgba(255,107,107,0.3);
-        }
-
-        .otp-sep {
-            display: inline-block;
-            width: 0.3em;
-        }
-
-        .progress-track {
-            height: 3px;
-            background: var(--border);
-            border-radius: 2px;
-            overflow: hidden;
-            margin-bottom: 1.25rem;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--accent);
-            border-radius: 2px;
-            transition: width 1s linear, background 0.3s;
-        }
-
-        .progress-fill.hot { background: var(--danger); }
-
-        .btn-copy {
-            width: 100%;
-            padding: 0.75rem;
-            background: transparent;
-            color: var(--muted);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-family: 'Syne', sans-serif;
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
+        .dlg-btns {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .dlg-btn {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Syne', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
             transition: all 0.2s;
         }
 
-        .btn-copy:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-            background: var(--accent-dim);
+        .dlg-btn.cancel { background: transparent; color: var(--muted); }
+        .dlg-btn.cancel:hover { background: var(--surface2); color: var(--text); }
+        .dlg-btn.save { background: transparent; color: var(--accent); }
+        .dlg-btn.save:hover { background: var(--accent-dim); }
+        .dlg-btn.del { background: transparent; color: var(--danger); }
+        .dlg-btn.del:hover { background: var(--danger-dim); }
+
+        .dlg-input {
+            width: 100%;
+            padding: 10px 0;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--border2);
+            color: var(--text);
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            outline: none;
+            margin-bottom: 20px;
+            transition: border-color 0.2s;
         }
 
-        .btn-copy.copied {
-            border-color: var(--accent);
-            color: var(--accent);
-            background: var(--accent-dim);
-        }
+        .dlg-input:focus { border-bottom-color: var(--accent); }
 
         .toast {
             position: fixed;
-            bottom: 2rem;
+            bottom: 90px;
             left: 50%;
-            transform: translateX(-50%) translateY(2rem);
-            background: var(--surface);
+            transform: translateX(-50%) translateY(16px);
+            background: #2d333b;
             color: var(--text);
             border: 1px solid var(--border2);
-            padding: 0.7rem 1.25rem;
+            padding: 13px 20px;
             border-radius: 10px;
             font-family: 'IBM Plex Mono', monospace;
             font-size: 0.8rem;
             opacity: 0;
             pointer-events: none;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: opacity 0.25s, transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
             white-space: nowrap;
             z-index: 999;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
         }
 
-        .toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
         footer {
-            margin-top: auto;
-            padding-top: 2rem;
+            width: 100%;
+            max-width: 480px;
             text-align: center;
+            padding: 24px 16px 32px;
             color: var(--muted);
             font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             letter-spacing: 0.04em;
-            animation: fadeUp 0.6s 0.3s ease both;
+            position: relative;
+            z-index: 1;
         }
 
-        footer a {
-            color: var(--accent);
-            text-decoration: none;
-        }
-
+        footer a { color: var(--accent); text-decoration: none; }
         footer a:hover { color: var(--accent2); }
-
-        @keyframes fadeDown {
-            from { opacity: 0; transform: translateY(-16px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(16px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
     </style>
 </head>
 <body>
 
-<div class="wrap">
-
-    <div class="header">
-        <div class="shield">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L4 6V12C4 16.42 7.45 20.6 12 22C16.55 20.6 20 16.42 20 12V6L12 2Z" fill="rgba(0,212,170,0.15)" stroke="#00d4aa" stroke-width="1.5" stroke-linejoin="round"/>
-                <path d="M9 12L11 14L15 10" stroke="#00d4aa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        </div>
-        
-        <h1>2FA <span>Auth</span></h1>
-        <p>// one-time password generator</p>
-    </div>
-
-    <div class="type-toggle">
-        <button class="type-btn active" id="btnTOTP" onclick="switchType('totp')">
-            <i class="fas fa-clock"></i> TOTP
-        </button>
-        
-        <button class="type-btn" id="btnHOTP" onclick="switchType('hotp')">
-            <i class="fas fa-hashtag"></i> HOTP
-        </button>
-    </div>
-
-    <div class="card">
-        <label class="field-label">Secret Key</label>
-        <div class="input-wrap">
-            <input type="text" id="secretInput" placeholder="JBSWY3DPEHPK3PXP" autocomplete="off" spellcheck="false">
-            <button type="button" id="clearBtn" class="clear-btn">
-                <i class="fas fa-times"></i>
+<div class="app-bar" id="appBar">
+    <button class="app-bar-back" id="backBtn" onclick="handleBack()" style="display:none;">
+        <i class="fas fa-arrow-left"></i>
+    </button>
+    <div class="app-bar-title" id="appBarTitle">2FA <span>Auth</span></div>
+    <div class="app-bar-actions" id="appBarActions">
+        <div class="menu-wrap">
+            <button class="bar-btn" id="menuBtn" onclick="toggleMenu()">
+                <i class="fas fa-ellipsis-v"></i>
             </button>
-        </div>
-
-        <div class="hotp-fields" id="hotpFields">
-            <label class="field-label">Counter</label>
-            <div class="counter-row">
-                <input type="number" id="counterInput" value="0" min="0" placeholder="0">
-                <div class="counter-btns">
-                    <button type="button" onclick="adjCounter(1)"><i class="fas fa-plus"></i></button>
-                    <button type="button" onclick="adjCounter(-1)"><i class="fas fa-minus"></i></button>
+            <div class="dropdown" id="dropdown">
+                <div class="dropdown-item" onclick="openAdd()">
+                    <i class="fas fa-plus"></i> Add account
+                </div>
+                <div class="dropdown-item" onclick="triggerImport()">
+                    <i class="fas fa-file-import"></i> Import data
+                </div>
+                <div class="dropdown-item" onclick="exportData()">
+                    <i class="fas fa-file-export"></i> Export data
                 </div>
             </div>
         </div>
-
-        <button class="btn-gen" id="genBtn">
-            <i class="fas fa-key"></i> Generate Code
-        </button>
-        <div class="err" id="errMsg"></div>
     </div>
-
-    <div class="result-card" id="resultCard">
-        <div class="result-meta">
-            <div class="result-type-tag" id="resultTag">TOTP</div>
-            <div class="timer-pill" id="timerPill">
-                <div class="pulse-dot" id="pulseDot"></div>
-                <span>in <b id="timerSec">30</b>s</span>
-            </div>
-            
-            <div class="counter-pill" id="counterPill" style="display:none;">
-                <i class="fas fa-hashtag" style="font-size:0.65rem;color:var(--muted)"></i>
-                <span>counter <b id="counterDisp">0</b></span>
-            </div>
-        </div>
-
-        <div class="otp-display">
-            <div class="otp-code" id="otpCode">000 000</div>
-        </div>
-
-        <div class="progress-track" id="progTrack">
-            <div class="progress-fill" id="progFill"></div>
-        </div>
-
-        <button class="btn-copy" id="copyBtn">
-            <i class="fas fa-copy"></i> Copy Code
+    <div class="app-bar-actions" id="detailActions" style="display:none;">
+        <button class="bar-btn rename" onclick="openRename()" title="Rename">
+            <i class="fas fa-pencil-alt"></i>
+        </button>
+        <button class="bar-btn danger" onclick="openDelete()" title="Remove">
+            <i class="fas fa-trash"></i>
         </button>
     </div>
+</div>
 
+<input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+
+<div class="main" id="mainView">
+    <div id="accountList"></div>
     <footer>
-        <p>Powered by <a href="https://github.com/Ridwanzanphelibelll/Auth2FA" target="_blank">RSCoders</a> &copy; <span id="yr"></span></p>
+        Powered by <a href="https://github.com/Ridwanzanphelibelll/Auth2FA" target="_blank">RSCoders</a>
+        &copy; <span id="yr"></span>
     </footer>
+</div>
 
+<div class="main" id="detailView" style="display:none;">
+    <div id="detailContent"></div>
+</div>
+
+<button class="fab" onclick="openAdd()" title="Add account">
+    <i class="fas fa-plus"></i>
+</button>
+
+<div class="overlay" id="addOverlay" onclick="overlayClick(event, 'addOverlay', closeAdd)">
+    <div class="bottom-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-inner">
+            <div class="sheet-title">Enter account details</div>
+
+            <div class="field-wrap">
+                <label class="field-label">Account name</label>
+                <input class="f-input" type="text" id="fName" placeholder="e.g. Google, GitHub..." autocomplete="off">
+            </div>
+
+            <div class="field-wrap">
+                <label class="field-label">Your key</label>
+                <input class="f-input" type="text" id="fKey" placeholder="JBSWY3DPEHPK3PXP" autocomplete="off" spellcheck="false">
+            </div>
+
+            <div class="field-wrap">
+                <label class="field-label">Type of key</label>
+                <select class="f-input" id="fType" onchange="typeChange()">
+                    <option value="totp">Time based</option>
+                    <option value="hotp">Counter based</option>
+                </select>
+            </div>
+
+            <div class="field-wrap" id="counterWrap" style="display:none;">
+                <label class="field-label">Initial counter</label>
+                <div class="counter-row">
+                    <input class="f-input" type="number" id="fCounter" value="0" min="0">
+                    <div class="ctr-btns">
+                        <button class="ctr-btn" onclick="adjCtr(1)"><i class="fas fa-plus"></i></button>
+                        <button class="ctr-btn" onclick="adjCtr(-1)"><i class="fas fa-minus"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="err-msg" id="addErr"></div>
+
+            <div class="sheet-btns">
+                <button class="sbtn cancel" onclick="closeAdd()">Cancel</button>
+                <button class="sbtn primary" onclick="addAccount()">
+                    <i class="fas fa-plus"></i> Add
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="dialog-overlay" id="renameDlg">
+    <div class="dialog">
+        <div class="dlg-title">Rename</div>
+        <input class="dlg-input" type="text" id="renameInp" autocomplete="off">
+        <div class="dlg-btns">
+            <button class="dlg-btn cancel" onclick="closeRename()">Cancel</button>
+            <button class="dlg-btn save" onclick="saveRename()">Save</button>
+        </div>
+    </div>
+</div>
+
+<div class="dialog-overlay" id="deleteDlg">
+    <div class="dialog">
+        <div class="dlg-title" id="dlgDelTitle">Remove account?</div>
+        <span class="dlg-name" id="dlgDelName"></span>
+        <div class="dlg-sub">Deleting this account will remove your ability to generate verification codes. Make sure you've disabled 2FA on the relevant service before deleting it.</div>
+        <div class="dlg-btns">
+            <button class="dlg-btn cancel" onclick="closeDelete()">Cancel</button>
+            <button class="dlg-btn del" onclick="confirmDelete()">Remove</button>
+        </div>
+    </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-    document.getElementById('yr').textContent = new Date().getFullYear();
+const SK = 'auth2fa_v1';
+const CIRC = 2 * Math.PI * 16;
 
-    let activeSecret = '';
-    let activeType = 'totp';
-    let ticker = null;
+let accounts = [];
+let ticker = null;
+let activeId = null;
 
-    const secretInput = document.getElementById('secretInput');
-    const clearBtn = document.getElementById('clearBtn');
+function load() {
+    try { accounts = JSON.parse(localStorage.getItem(SK)) || []; } catch { accounts = []; }
+}
 
-    secretInput.addEventListener('input', () => {
-        clearBtn.style.display = secretInput.value.trim() ? 'flex' : 'none';
+function save() { localStorage.setItem(SK, JSON.stringify(accounts)); }
+
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+function esc(s) {
+    return String(s)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;');
+}
+
+function fmt(tok) {
+    if (!tok || tok.length !== 6) return tok;
+    return tok.slice(0,3) + ' ' + tok.slice(3);
+}
+
+function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+window.addEventListener('scroll', () => {
+    document.getElementById('appBar').classList.toggle('scrolled', window.scrollY > 0);
+});
+
+function toggleMenu() {
+    document.getElementById('dropdown').classList.toggle('open');
+}
+
+document.addEventListener('click', e => {
+    const dd = document.getElementById('dropdown');
+    const mb = document.getElementById('menuBtn');
+    if (!mb.contains(e.target) && !dd.contains(e.target)) dd.classList.remove('open');
+});
+
+function overlayClick(e, id, fn) {
+    if (e.target === document.getElementById(id)) fn();
+}
+
+function typeChange() {
+    document.getElementById('counterWrap').style.display =
+        document.getElementById('fType').value === 'hotp' ? 'block' : 'none';
+}
+
+function adjCtr(d) {
+    const i = document.getElementById('fCounter');
+    i.value = Math.max(0, (parseInt(i.value) || 0) + d);
+}
+
+function openAdd() {
+    document.getElementById('dropdown').classList.remove('open');
+    document.getElementById('fName').value = '';
+    document.getElementById('fKey').value = '';
+    document.getElementById('fType').value = 'totp';
+    document.getElementById('fCounter').value = '0';
+    document.getElementById('counterWrap').style.display = 'none';
+    document.getElementById('addErr').classList.remove('show');
+    document.getElementById('addOverlay').classList.add('open');
+    setTimeout(() => document.getElementById('fName').focus(), 320);
+}
+
+function closeAdd() { document.getElementById('addOverlay').classList.remove('open'); }
+
+function showErr(msg) {
+    const el = document.getElementById('addErr');
+    el.textContent = msg;
+    el.classList.add('show');
+}
+
+function addAccount() {
+    const name = document.getElementById('fName').value.trim();
+    const key = document.getElementById('fKey').value.trim().toUpperCase().replace(/\s+/g,'');
+    const type = document.getElementById('fType').value;
+    const counter = parseInt(document.getElementById('fCounter').value) || 0;
+    document.getElementById('addErr').classList.remove('show');
+    if (!name) { showErr('Account name is required.'); return; }
+    if (!key) { showErr('Secret key is required.'); return; }
+    if (key.length < 16) { showErr('Secret key must be at least 16 characters.'); return; }
+    accounts.push({ id: genId(), name, secret: key, type, counter });
+    save();
+    closeAdd();
+    renderList();
+    toast('Account added successfully!');
+}
+
+function setDetailMode(id) {
+    activeId = id;
+    const acc = accounts.find(a => a.id === id);
+    document.getElementById('appBarTitle').textContent = acc ? acc.name : '';
+    document.getElementById('backBtn').style.display = 'flex';
+    document.getElementById('appBarActions').style.display = 'none';
+    document.getElementById('detailActions').style.display = 'flex';
+    document.getElementById('mainView').style.display = 'none';
+    document.getElementById('detailView').style.display = 'block';
+    document.querySelector('.fab').style.display = 'none';
+    renderDetail(id);
+    stopTicker();
+    startDetailTicker(id);
+}
+
+function handleBack() {
+    activeId = null;
+    document.getElementById('appBarTitle').innerHTML = '2FA <span style="color:var(--accent)">Auth</span>';
+    document.getElementById('backBtn').style.display = 'none';
+    document.getElementById('appBarActions').style.display = 'flex';
+    document.getElementById('detailActions').style.display = 'none';
+    document.getElementById('mainView').style.display = 'block';
+    document.getElementById('detailView').style.display = 'none';
+    document.querySelector('.fab').style.display = 'flex';
+    stopTicker();
+    renderList();
+}
+
+function renderList() {
+    const el = document.getElementById('accountList');
+    if (accounts.length === 0) {
+        stopTicker();
+        el.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-shield">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L4 6V12C4 16.42 7.45 20.6 12 22C16.55 20.6 20 16.42 20 12V6L12 2Z"
+                            fill="rgba(0,212,170,0.15)" stroke="#00d4aa" stroke-width="1.5" stroke-linejoin="round"/>
+                        <path d="M9 12L11 14L15 10" stroke="#00d4aa" stroke-width="1.5"
+                            stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="empty-title">No accounts yet</div>
+                <div class="empty-sub">tap + to add your first account.</div>
+            </div>`;
+        return;
+    }
+
+    el.innerHTML = accounts.map(acc => {
+        const isHOTP = acc.type === 'hotp';
+        const right = isHOTP
+            ? `<div class="acc-right">
+                <button class="hotp-btn" onclick="event.stopPropagation(); hotpNext('${acc.id}')" title="Next code">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <div class="hotp-ctr" id="ctr-${acc.id}">#${acc.counter}</div>
+               </div>`
+            : `<div class="acc-right">
+                <svg class="ring-svg" width="38" height="38" viewBox="0 0 38 38">
+                    <circle class="ring-bg" cx="19" cy="19" r="16"/>
+                    <circle class="ring-fill" id="ring-${acc.id}" cx="19" cy="19" r="16"
+                        stroke-dasharray="${CIRC}" stroke-dashoffset="${CIRC}"/>
+                </svg>
+                <div class="ring-sec" id="sec-${acc.id}">--s</div>
+               </div>`;
+        return `
+        <div class="account-item" id="item-${acc.id}" onclick="setDetailMode('${acc.id}')">
+            <div class="account-info">
+                <div class="acc-name">${esc(acc.name)}</div>
+                <div class="acc-code" id="code-${acc.id}">--- ---</div>
+            </div>
+            ${right}
+        </div>`;
+    }).join('');
+
+    stopTicker();
+    startListTicker();
+}
+
+function renderDetail(id) {
+    const acc = accounts.find(a => a.id === id);
+    if (!acc) return;
+    const isHOTP = acc.type === 'hotp';
+    const el = document.getElementById('detailContent');
+
+    const right = isHOTP
+        ? `<div class="acc-right" style="margin-left:20px;">
+            <button class="hotp-btn" onclick="hotpNext('${acc.id}')" title="Next code" style="width:44px;height:44px;font-size:1rem;">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            <div class="hotp-ctr" id="dctr-${acc.id}">#${acc.counter}</div>
+           </div>`
+        : `<div class="acc-right" style="margin-left:20px;">
+            <svg class="ring-svg" width="48" height="48" viewBox="0 0 48 48">
+                <circle class="ring-bg" cx="24" cy="24" r="20" stroke-width="4"/>
+                <circle class="ring-fill" id="dring-${acc.id}" cx="24" cy="24" r="20"
+                    stroke-dasharray="${2*Math.PI*20}" stroke-dashoffset="${2*Math.PI*20}" stroke-width="4"/>
+            </svg>
+            <div class="ring-sec" id="dsec-${acc.id}" style="font-size:0.65rem;">--s</div>
+           </div>`;
+
+    el.innerHTML = `
+        <div class="account-item active-detail" style="cursor:default; border-top:1px solid var(--border); padding: 24px 20px;">
+            <div class="account-info">
+                <div class="acc-name">${esc(acc.name)}</div>
+                <div class="acc-code" id="dcode-${acc.id}" style="font-size:2.6rem;">--- ---</div>
+            </div>
+            ${right}
+        </div>`;
+}
+
+async function fetchTOTP(secret) {
+    const res = await fetch('/api/totp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret })
     });
+    return res.json();
+}
 
-    clearBtn.addEventListener('click', () => {
-        secretInput.value = '';
-        clearBtn.style.display = 'none';
-        document.getElementById('errMsg').classList.remove('show');
-        document.getElementById('resultCard').classList.remove('show');
-        activeSecret = '';
-        if (ticker) clearInterval(ticker);
-        secretInput.focus();
-    });
-
-    function switchType(t) {
-        activeType = t;
-        document.getElementById('btnTOTP').classList.toggle('active', t === 'totp');
-        document.getElementById('btnHOTP').classList.toggle('active', t === 'hotp');
-        document.getElementById('hotpFields').classList.toggle('show', t === 'hotp');
-        document.getElementById('resultCard').classList.remove('show');
-        document.getElementById('errMsg').classList.remove('show');
-        activeSecret = '';
-        if (ticker) clearInterval(ticker);
-    }
-
-    function adjCounter(d) {
-        const inp = document.getElementById('counterInput');
-        inp.value = Math.max(0, (parseInt(inp.value) || 0) + d);
-    }
-
-    function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.textContent = msg;
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 2000);
-    }
-
-    function fmtToken(tok) {
-        if (!tok || tok.length !== 6) return tok;
-        return tok.slice(0, 3) + ' ' + tok.slice(3);
-    }
-
-    async function generate() {
-        const secret = secretInput.value.trim();
-        const errEl = document.getElementById('errMsg');
-        const btn = document.getElementById('genBtn');
-        errEl.classList.remove('show');
-
-        if (!secret) {
-            errEl.textContent = 'Secret key is required.';
-            errEl.classList.add('show');
-            return;
-        }
-
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
-
-        try {
-            if (activeType === 'totp') {
-                const res = await fetch('/api/totp', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ secret })
-                });
-                const data = await res.json();
-                if (!data.status) {
-                    errEl.textContent = data.message;
-                    errEl.classList.add('show');
-                    return;
-                }
-                activeSecret = secret;
-                renderTOTP(data.data);
-                document.getElementById('timerPill').style.display = 'flex';
-                document.getElementById('counterPill').style.display = 'none';
-                document.getElementById('progTrack').style.display = 'block';
-                document.getElementById('resultTag').textContent = 'TOTP';
-                document.getElementById('resultCard').classList.add('show');
-                startTicker();
-            } else {
-                const counter = parseInt(document.getElementById('counterInput').value) || 0;
-                const res = await fetch('/api/hotp', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ secret, counter })
-                });
-                const data = await res.json();
-                if (!data.status) {
-                    errEl.textContent = data.message;
-                    errEl.classList.add('show');
-                    return;
-                }
-                if (ticker) clearInterval(ticker);
-                activeSecret = '';
-                renderHOTP(data.data);
-                document.getElementById('timerPill').style.display = 'none';
-                document.getElementById('counterPill').style.display = 'flex';
-                document.getElementById('progTrack').style.display = 'none';
-                document.getElementById('resultTag').textContent = 'HOTP';
-                document.getElementById('resultCard').classList.add('show');
-            }
-        } catch (e) {
-            errEl.textContent = 'Network error. Please try again.';
-            errEl.classList.add('show');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-key"></i> Generate Code';
-        }
-    }
-
-    function renderTOTP({ token, timeRemaining, period }) {
-        const code = document.getElementById('otpCode');
-        const sec = document.getElementById('timerSec');
-        const fill = document.getElementById('progFill');
-        const dot = document.getElementById('pulseDot');
+async function updateListItem(acc) {
+    try {
+        const data = await fetchTOTP(acc.secret);
+        if (!data.status) return;
+        const { token, timeRemaining, period } = data.data;
         const hot = timeRemaining <= 5;
-
-        code.textContent = fmtToken(token);
-        code.classList.toggle('hot', hot);
-        sec.textContent = timeRemaining;
-        fill.style.width = ((timeRemaining / period) * 100) + '%';
-        fill.classList.toggle('hot', hot);
-        dot.classList.toggle('hot', hot);
-    }
-
-    function renderHOTP({ token, counter }) {
-        const code = document.getElementById('otpCode');
-        code.classList.remove('hot');
-        code.textContent = fmtToken(token);
-        document.getElementById('counterDisp').textContent = counter;
-    }
-
-    function startTicker() {
-        if (ticker) clearInterval(ticker);
-        ticker = setInterval(async () => {
-            if (!activeSecret) return;
-            try {
-                const res = await fetch('/api/totp', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ secret: activeSecret })
-                });
-                const data = await res.json();
-                if (data.status) renderTOTP(data.data);
-            } catch (e) {}
-        }, 1000);
-    }
-
-    async function copyCode() {
-        const raw = document.getElementById('otpCode').textContent.replace(/\s/g, '');
-        try {
-            await navigator.clipboard.writeText(raw);
-            const btn = document.getElementById('copyBtn');
-            btn.classList.add('copied');
-            btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-            showToast('Code copied!');
-            setTimeout(() => {
-                btn.classList.remove('copied');
-                btn.innerHTML = '<i class="fas fa-copy"></i> Copy Code';
-            }, 1800);
-        } catch (e) {
-            showToast('Failed to copy.');
+        const codeEl = document.getElementById(`code-${acc.id}`);
+        const ringEl = document.getElementById(`ring-${acc.id}`);
+        const secEl = document.getElementById(`sec-${acc.id}`);
+        if (codeEl) { codeEl.textContent = fmt(token); codeEl.classList.toggle('hot', hot); }
+        if (ringEl) {
+            const C = 2 * Math.PI * 16;
+            ringEl.style.strokeDashoffset = C * (1 - timeRemaining / period);
+            ringEl.classList.toggle('hot', hot);
         }
+        if (secEl) secEl.textContent = timeRemaining + 's';
+    } catch {}
+}
+
+async function updateDetailItem(acc) {
+    try {
+        const data = await fetchTOTP(acc.secret);
+        if (!data.status) return;
+        const { token, timeRemaining, period } = data.data;
+        const hot = timeRemaining <= 5;
+        const codeEl = document.getElementById(`dcode-${acc.id}`);
+        const ringEl = document.getElementById(`dring-${acc.id}`);
+        const secEl = document.getElementById(`dsec-${acc.id}`);
+        if (codeEl) { codeEl.textContent = fmt(token); codeEl.classList.toggle('hot', hot); }
+        if (ringEl) {
+            const C = 2 * Math.PI * 20;
+            ringEl.style.strokeDashoffset = C * (1 - timeRemaining / period);
+            ringEl.classList.toggle('hot', hot);
+        }
+        if (secEl) secEl.textContent = timeRemaining + 's';
+    } catch {}
+}
+
+function startListTicker() {
+    const totps = accounts.filter(a => a.type === 'totp');
+    if (!totps.length) return;
+    totps.forEach(a => updateListItem(a));
+    ticker = setInterval(() => totps.forEach(a => updateListItem(a)), 1000);
+}
+
+function startDetailTicker(id) {
+    const acc = accounts.find(a => a.id === id);
+    if (!acc) return;
+    if (acc.type === 'totp') {
+        updateDetailItem(acc);
+        ticker = setInterval(() => updateDetailItem(acc), 1000);
     }
+}
 
-    document.getElementById('genBtn').addEventListener('click', generate);
-    document.getElementById('copyBtn').addEventListener('click', copyCode);
-    secretInput.addEventListener('keydown', e => { if (e.key === 'Enter') generate(); });
-    document.getElementById('counterInput').addEventListener('keydown', e => { if (e.key === 'Enter') generate(); });
+function stopTicker() {
+    if (ticker) { clearInterval(ticker); ticker = null; }
+}
+
+async function hotpNext(id) {
+    const acc = accounts.find(a => a.id === id);
+    if (!acc) return;
+    try {
+        const res = await fetch('/api/hotp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ secret: acc.secret, counter: acc.counter })
+        });
+        const data = await res.json();
+        if (!data.status) { toast(data.message); return; }
+        const token = fmt(data.data.token);
+        const codeList = document.getElementById(`code-${id}`);
+        const codeDtl = document.getElementById(`dcode-${id}`);
+        const ctrList = document.getElementById(`ctr-${id}`);
+        const ctrDtl = document.getElementById(`dctr-${id}`);
+        if (codeList) { codeList.textContent = token; codeList.classList.remove('hot'); }
+        if (codeDtl) { codeDtl.textContent = token; codeDtl.classList.remove('hot'); }
+        acc.counter++;
+        if (ctrList) ctrList.textContent = '#' + acc.counter;
+        if (ctrDtl) ctrDtl.textContent = '#' + acc.counter;
+        save();
+    } catch { toast('Failed to generate code'); }
+}
+
+document.addEventListener('click', e => {
+    const item = e.target.closest('.account-item');
+    if (!item) return;
+    const id = item.id.replace('item-', '');
+    const acc = accounts.find(a => a.id === id);
+    if (!acc) return;
+    const codeEl = document.getElementById(`code-${id}`);
+    if (!codeEl) return;
+    const raw = codeEl.textContent.replace(/\s/g, '');
+    if (!raw || raw === '------') return;
+    navigator.clipboard.writeText(raw).then(() => toast('Verification code copied to clipboard.')).catch(() => {});
+});
+
+function openRename() {
+    if (!activeId) return;
+    const acc = accounts.find(a => a.id === activeId);
+    document.getElementById('renameInp').value = acc ? acc.name : '';
+    document.getElementById('renameDlg').classList.add('open');
+    setTimeout(() => document.getElementById('renameInp').focus(), 100);
+}
+
+function closeRename() { document.getElementById('renameDlg').classList.remove('open'); }
+
+function saveRename() {
+    const v = document.getElementById('renameInp').value.trim();
+    if (!v) { toast('Name cannot be empty'); return; }
+    const acc = accounts.find(a => a.id === activeId);
+    if (acc) {
+        acc.name = v;
+        save();
+        document.getElementById('appBarTitle').textContent = v;
+        renderDetail(activeId);
+        toast('Account renamed');
+    }
+    closeRename();
+}
+
+document.getElementById('renameInp').addEventListener('keydown', e => { if (e.key === 'Enter') saveRename(); });
+
+function openDelete() {
+    if (!activeId) return;
+    const acc = accounts.find(a => a.id === activeId);
+    document.getElementById('dlgDelTitle').textContent = 'Remove account?';
+    document.getElementById('dlgDelName').textContent = acc ? acc.name : '';
+    document.getElementById('deleteDlg').classList.add('open');
+}
+
+function closeDelete() { document.getElementById('deleteDlg').classList.remove('open'); }
+
+function confirmDelete() {
+    accounts = accounts.filter(a => a.id !== activeId);
+    save();
+    closeDelete();
+    handleBack();
+    toast('Account removed successfully!');
+}
+
+function triggerImport() {
+    document.getElementById('dropdown').classList.remove('open');
+    document.getElementById('importFile').click();
+}
+
+function importData(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+        try {
+            const parsed = JSON.parse(ev.target.result);
+            if (!parsed.accounts || !Array.isArray(parsed.accounts)) { toast('Invalid file format!'); return; }
+            const existing = accounts.map(a => a.secret + a.name);
+            let added = 0;
+            parsed.accounts.forEach(a => {
+                if (!existing.includes(a.secret + a.name)) {
+                    accounts.push({ ...a, id: a.id || genId() });
+                    added++;
+                }
+            });
+            save();
+            renderList();
+            toast(`Imported ${added} account(s)`);
+        } catch { toast('Invalid or corrupted file!'); }
+        e.target.value = '';
+    };
+    reader.readAsText(file);
+}
+
+function exportData() {
+    document.getElementById('dropdown').classList.remove('open');
+    if (!accounts.length) { toast('No accounts to export!'); return; }
+    const blob = new Blob([JSON.stringify({ version: 1, accounts }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `auth2fa-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('Data exported');
+}
+
+load();
+renderList();
+
 </script>
-
 </body>
 </html>
